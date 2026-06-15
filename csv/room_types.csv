@@ -1,0 +1,6 @@
+room_type_code,type_name,max_guests,description
+SGL,Single,1,"Single bed, ideal for solo travellers"
+DBL,Double,2,"Queen bed, perfect for couples"
+TWN,Twin,2,Two single beds
+SUT,Suite,4,Luxury suite with living area
+FAM,Family,4,"Two bedrooms, family-friendly"

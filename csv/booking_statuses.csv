@@ -1,0 +1,7 @@
+status_code,status_name,is_terminal
+PENDING,Pending,False
+CONFIRMED,Confirmed,False
+CHECKED_IN,Checked In,False
+COMPLETED,Completed,True
+CANCELLED,Cancelled,True
+NO_SHOW,No Show,True

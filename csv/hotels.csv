@@ -1,0 +1,11 @@
+hotel_code,hotel_name,city_code,category_code,address,phone,email,check_in_time,check_out_time
+HTL001,Grand Plaza Hotel,NYC,CAT5,"123 Main St, NYC",+1-212-5550101,info@grandplaza.com,14:00,12:00
+HTL002,London Bridge Inn,LON,CAT4,"123 Main St, LON",+44-20-55501,stay@londonbridge.co.uk,14:00,12:00
+HTL003,Berlin Comfort,BER,CAT3,"123 Main St, BER",+49-30-55503,hello@berlincomfort.de,14:00,12:00
+HTL004,Louvre Boutique,PAR,BOUT,"123 Main St, PAR",+33-1-55504,contact@louvreboutique.fr,14:00,12:00
+HTL005,Roma Luxury,ROM,CAT5,"123 Main St, ROM",+39-06-55505,book@romaluxury.it,14:00,12:00
+HTL006,Sol Madrid,MAD,CAT4,"123 Main St, MAD",+34-91-55506,info@solmadrid.es,14:00,12:00
+HTL007,Tokyo Stay,TYO,CAT4,"123 Main St, TYO",+81-3-55507,reserve@tokyostay.jp,14:00,12:00
+HTL008,Desert Palace,DXB,CAT5,"123 Main St, DXB",+971-4-55508,vip@desertpalace.ae,14:00,12:00
+HTL009,Bangkok Garden,BKK,CAT3,"123 Main St, BKK",+66-2-55509,info@bkkgarden.th,14:00,12:00
+HTL010,Warsaw Central,WAW,CAT4,"123 Main St, WAW",+48-22-55510,booking@wawcentral.pl,14:00,12:00
