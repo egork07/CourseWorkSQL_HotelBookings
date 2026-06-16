@@ -1,12 +1,7 @@
--- ============================================================
--- OLAP QUERIES — Hotel Booking DWH
--- ============================================================
 SET search_path = olap;
 
--- ── Query 1 ─────────────────────────────────────────────────
--- Revenue by quarter, country, and hotel category (CUBE-style)
+-- Revenue by quarter, country, and hotel category
 -- Question: What is our revenue breakdown by region and time?
--- ────────────────────────────────────────────────────────────
 SELECT
     dd.year,
     dd.quarter,
@@ -27,10 +22,8 @@ GROUP BY dd.year, dd.quarter, dl.country_name, dh.category_name
 ORDER BY dd.year, dd.quarter, total_revenue DESC;
 
 
--- ── Query 2 ─────────────────────────────────────────────────
--- Loyalty tier analysis — bookings and spend per tier (SCD Type 2)
+-- Loyalty tier analysis — bookings and spend per tier
 -- Question: Do Gold/Platinum guests book more and spend more?
--- ────────────────────────────────────────────────────────────
 SELECT
     dg.loyalty_tier,
     COUNT(DISTINCT dg.guest_code)         AS unique_guests,
@@ -53,10 +46,8 @@ ORDER BY
     END;
 
 
--- ── Query 3 ─────────────────────────────────────────────────
 -- Monthly payment trends by method (year-over-year)
 -- Question: Which payment methods are growing?
--- ────────────────────────────────────────────────────────────
 SELECT
     dd.year,
     dd.month_name,
@@ -72,10 +63,8 @@ GROUP BY dd.year, dd.month_name, dd.month_num, dpm.method_name
 ORDER BY dd.year, dd.month_num, net_revenue DESC;
 
 
--- ── Query 4 ─────────────────────────────────────────────────
 -- Hotel occupancy rate by month
 -- Question: Which months are the busiest for each hotel?
--- ────────────────────────────────────────────────────────────
 WITH monthly_nights AS (
     SELECT
         fb.hotel_key,
@@ -90,7 +79,6 @@ WITH monthly_nights AS (
     GROUP BY fb.hotel_key, dd.year, dd.month_num, dd.month_name
 ),
 hotel_capacity AS (
-    -- approximate: count active rooms per hotel from OLTP
     SELECT r.hotel_code, COUNT(*) AS room_count
     FROM oltp.rooms r WHERE r.is_active = TRUE
     GROUP BY r.hotel_code
@@ -101,7 +89,6 @@ SELECT
     mn.month_name,
     mn.nights_booked,
     hc.room_count,
-    -- days in month × rooms = total available room-nights
     ROUND(
         100.0 * mn.nights_booked
         / NULLIF(hc.room_count * 30, 0), 1
@@ -112,9 +99,7 @@ JOIN hotel_capacity hc ON hc.hotel_code = dh.hotel_code
 ORDER BY dh.hotel_name, mn.year, mn.month_num;
 
 
--- ── Query 5 ─────────────────────────────────────────────────
 -- Room type revenue mix — which types drive the most income?
--- ────────────────────────────────────────────────────────────
 SELECT
     drt.type_name,
     COUNT(fb.booking_fact_id)              AS bookings,

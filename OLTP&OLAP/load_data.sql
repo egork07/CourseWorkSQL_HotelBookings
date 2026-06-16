@@ -1,11 +1,5 @@
--- ============================================================
--- LOAD DATA FROM CSV TO OLTP  (idempotent / rerunnable)
--- Запускать в pgAdmin: открыть файл -> F5
--- ============================================================
-
 SET search_path = oltp;
 
--- ── Временные staging таблицы ───────────────────────────────
 CREATE TEMP TABLE stg_countries        (LIKE oltp.countries);
 CREATE TEMP TABLE stg_cities           (LIKE oltp.cities);
 CREATE TEMP TABLE stg_hotel_categories (LIKE oltp.hotel_categories);
@@ -17,7 +11,6 @@ CREATE TEMP TABLE stg_guests           (LIKE oltp.guests);
 CREATE TEMP TABLE stg_bookings         (LIKE oltp.bookings);
 CREATE TEMP TABLE stg_payments         (LIKE oltp.payments);
 
--- ── Загрузка из CSV (серверный COPY без обратного слэша) ────
 COPY stg_countries        FROM '/Users/egor/CourseWorkSQL/CSV/countries.csv'        CSV HEADER;
 COPY stg_cities           FROM '/Users/egor/CourseWorkSQL/CSV/cities.csv'           CSV HEADER;
 COPY stg_hotel_categories FROM '/Users/egor/CourseWorkSQL/CSV/hotel_categories.csv' CSV HEADER;
@@ -29,7 +22,6 @@ COPY stg_guests           FROM '/Users/egor/CourseWorkSQL/CSV/guests.csv'       
 COPY stg_bookings         FROM '/Users/egor/CourseWorkSQL/CSV/bookings.csv'         CSV HEADER;
 COPY stg_payments         FROM '/Users/egor/CourseWorkSQL/CSV/payments.csv'         CSV HEADER;
 
--- ── Вставка в целевые таблицы (только новые строки) ─────────
 INSERT INTO oltp.countries        SELECT * FROM stg_countries        ON CONFLICT (country_code)   DO NOTHING;
 INSERT INTO oltp.cities           SELECT * FROM stg_cities           ON CONFLICT (city_code)      DO NOTHING;
 INSERT INTO oltp.hotel_categories SELECT * FROM stg_hotel_categories ON CONFLICT (category_code)  DO NOTHING;
@@ -41,7 +33,6 @@ INSERT INTO oltp.guests           SELECT * FROM stg_guests           ON CONFLICT
 INSERT INTO oltp.bookings         SELECT * FROM stg_bookings         ON CONFLICT (booking_code)   DO NOTHING;
 INSERT INTO oltp.payments         SELECT * FROM stg_payments         ON CONFLICT (payment_code)   DO NOTHING;
 
--- ── Итог ────────────────────────────────────────────────────
 DO $$
 BEGIN
     RAISE NOTICE 'Load complete.';

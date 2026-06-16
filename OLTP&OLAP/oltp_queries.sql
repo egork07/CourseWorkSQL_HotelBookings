@@ -1,12 +1,7 @@
--- ============================================================
--- OLTP QUERIES — Hotel Booking System
--- ============================================================
 SET search_path = oltp;
 
--- ── Query 1 ─────────────────────────────────────────────────
 -- Monthly booking volume and revenue by hotel
 -- Question: Which hotels generate the most revenue per month?
--- ────────────────────────────────────────────────────────────
 SELECT
     h.hotel_name,
     DATE_TRUNC('month', b.booked_at)::DATE       AS booking_month,
@@ -22,10 +17,8 @@ GROUP BY h.hotel_name, DATE_TRUNC('month', b.booked_at)
 ORDER BY booking_month, gross_revenue DESC;
 
 
--- ── Query 2 ─────────────────────────────────────────────────
 -- Top 10 most loyal guests with their booking history
 -- Question: Who are our best customers?
--- ────────────────────────────────────────────────────────────
 SELECT
     g.guest_code,
     g.first_name || ' ' || g.last_name           AS guest_name,
@@ -45,10 +38,8 @@ ORDER BY lifetime_spend DESC NULLS LAST
 LIMIT 10;
 
 
--- ── Query 3 ─────────────────────────────────────────────────
 -- Room availability check for a given date range
 -- Question: Which rooms are free between 2024-06-01 and 2024-06-07?
--- ────────────────────────────────────────────────────────────
 SELECT
     h.hotel_name,
     r.room_number,
@@ -69,10 +60,8 @@ WHERE r.is_active = TRUE
 ORDER BY h.hotel_name, r.price_per_night;
 
 
--- ── Query 4 ─────────────────────────────────────────────────
 -- Cancellation rate by hotel and room type
 -- Question: Where do most cancellations happen?
--- ────────────────────────────────────────────────────────────
 SELECT
     h.hotel_name,
     rt.type_name                                  AS room_type,
@@ -90,10 +79,8 @@ GROUP BY h.hotel_name, rt.type_name
 ORDER BY cancellation_rate_pct DESC NULLS LAST;
 
 
--- ── Query 5 ─────────────────────────────────────────────────
 -- Payment method distribution and refund analysis
 -- Question: How are guests paying, and how much is refunded?
--- ────────────────────────────────────────────────────────────
 SELECT
     p.payment_method,
     COUNT(*) FILTER (WHERE NOT p.is_refund)       AS total_payments,

@@ -1,13 +1,5 @@
--- ============================================================
--- ETL: OLTP → OLAP  (idempotent / incremental)
--- Run order: this script assumes both schemas exist in same DB.
--- Previously loaded records are NOT overwritten.
--- ============================================================
 SET search_path = olap;
 
--- ============================================================
--- STEP 1 — dim_date  (populate 2023-01-01 … 2027-12-31)
--- ============================================================
 INSERT INTO olap.dim_date (
     date_key, full_date, day_of_week, day_name,
     day_of_month, day_of_year, week_of_year,
@@ -29,9 +21,7 @@ SELECT
 FROM generate_series('2023-01-01'::DATE, '2027-12-31'::DATE, '1 day') AS t(d)
 ON CONFLICT (date_key) DO NOTHING;
 
--- ============================================================
 -- STEP 2 — dim_location
--- ============================================================
 INSERT INTO olap.dim_location (city_code, city_name, country_code, country_name)
 SELECT
     c.city_code,
@@ -42,9 +32,7 @@ FROM oltp.cities c
 JOIN oltp.countries co ON co.country_code = c.country_code
 ON CONFLICT (city_code) DO NOTHING;
 
--- ============================================================
 -- STEP 3 — dim_hotel
--- ============================================================
 INSERT INTO olap.dim_hotel (hotel_code, hotel_name, category_code, category_name, stars, location_key)
 SELECT
     h.hotel_code,
@@ -58,25 +46,13 @@ JOIN oltp.hotel_categories hc ON hc.category_code = h.category_code
 JOIN olap.dim_location      dl ON dl.city_code     = h.city_code
 ON CONFLICT (hotel_code) DO NOTHING;
 
--- ============================================================
 -- STEP 4 — dim_room_type
--- ============================================================
 INSERT INTO olap.dim_room_type (room_type_code, type_name, max_guests)
 SELECT room_type_code, type_name, max_guests
 FROM oltp.room_types
 ON CONFLICT (room_type_code) DO NOTHING;
 
--- ============================================================
--- STEP 5 — dim_guest  (SCD Type 2)
--- Logic:
---   a) Insert brand-new guests (never seen in dim_guest)
---   b) For existing guests: if loyalty_tier changed →
---        close old row (set eff_end_date, is_current=FALSE)
---        insert new row
--- Tier thresholds: <500=Bronze, <2000=Silver, <5000=Gold, >=5000=Platinum
--- ============================================================
-
--- Helper: tier assignment
+-- STEP 5 — dim_guest 
 CREATE OR REPLACE FUNCTION olap.loyalty_tier(points INTEGER)
 RETURNS VARCHAR(20) LANGUAGE sql IMMUTABLE AS $$
     SELECT CASE
@@ -140,17 +116,13 @@ WHERE NOT EXISTS (
     WHERE dg.guest_code = g.guest_code AND dg.is_current = TRUE
 );
 
--- ============================================================
 -- STEP 6 — dim_booking_status
--- ============================================================
 INSERT INTO olap.dim_booking_status (status_code, status_name, is_terminal)
 SELECT status_code, status_name, is_terminal
 FROM oltp.booking_statuses
 ON CONFLICT (status_code) DO NOTHING;
 
--- ============================================================
 -- STEP 7 — dim_payment_method
--- ============================================================
 INSERT INTO olap.dim_payment_method (method_code, method_name)
 SELECT DISTINCT
     payment_method,
@@ -158,10 +130,8 @@ SELECT DISTINCT
 FROM oltp.payments
 ON CONFLICT (method_code) DO NOTHING;
 
--- ============================================================
 -- STEP 8 — bridge_booking_guests
 -- (primary guest only — expandable for group bookings)
--- ============================================================
 INSERT INTO olap.bridge_booking_guests (booking_code, guest_key, is_primary)
 SELECT
     b.booking_code,
@@ -175,9 +145,7 @@ WHERE NOT EXISTS (
       AND bbg.guest_key    = dg.guest_key
 );
 
--- ============================================================
 -- STEP 9 — fact_bookings
--- ============================================================
 INSERT INTO olap.fact_bookings (
     booking_code,
     hotel_key, room_type_key, guest_key,
@@ -209,9 +177,7 @@ WHERE NOT EXISTS (
     WHERE fb.booking_code = b.booking_code
 );
 
--- ============================================================
 -- STEP 10 — fact_payments
--- ============================================================
 INSERT INTO olap.fact_payments (
     payment_code, booking_code,
     hotel_key, guest_key,
@@ -239,9 +205,6 @@ WHERE NOT EXISTS (
     WHERE fp.payment_code = p.payment_code
 );
 
--- ============================================================
--- SUMMARY
--- ============================================================
 DO $$
 BEGIN
     RAISE NOTICE 'ETL complete.';
